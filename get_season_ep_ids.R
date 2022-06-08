@@ -2,6 +2,7 @@ library(tidyverse)
 library(rvest)
 
 # this gets the game_ids for all games in the given season
+# at the moment this function automatically filters for only "regular" games
 
 get_season_ep_ids <- function(season) {
   

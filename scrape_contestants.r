@@ -1,8 +1,12 @@
 library(rvest)
 library(tidyverse)
 
-# this should loop over all games
-
+# returns a datafrane consisting of:
+# - player_name: the player's full name
+# - player_id
+# - game_id
+# - tape_date
+# - air_date
 
 get_contestants <- function(season) {
   
@@ -81,9 +85,6 @@ get_contestants <- function(season) {
   
   return(contestants_full)
 }
-
-contestants_38 <- get_contestants(38)
-
 
   
   

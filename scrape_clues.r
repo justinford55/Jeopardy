@@ -5,8 +5,6 @@ source("get_season_ep_ids.R")
 
 get_game_info <- function(season) {
   
-  season <- 35
-  
   # retrieves episode ids for the season
   ep_ids <- get_season_ep_ids(season)
   
@@ -90,9 +88,6 @@ get_game_info <- function(season) {
     daily_doubles <- append(daily_doubles, ep_daily_doubles)
     clue_order <- append(clue_order, ep_clue_order)
     categories <- append(categories, clue_categories)
-    
-    
-    print(ep_id)
     }
   
   game_clues_ids <- tibble(season = season, game_id = game_ids, clue = clues, clue_id = clue_ids, corr_resp = corr_resps,
