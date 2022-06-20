@@ -2,6 +2,15 @@ library(rvest)
 library(tidyverse)
 source("get_season_ep_ids.R")
 
+# this basically gets clue information for all games of a season, including:
+# - the game_id of the game
+# - the text of the clue
+# - the correct response
+# - the board position and round of the clue
+# - daily double flag and wager
+# - order in which the clue was revealed
+
+# it only contains data on clues that were revealed
 
 get_game_info <- function(season) {
   
@@ -127,111 +136,3 @@ get_game_info <- function(season) {
   return(game_clues)
   
 }
-
-full_games <- get_game_info(38)
-
-
-s35 <- get_game_info(35)
-
-# Things I want to include:
-#    - whether or not the question was answered correctly
-#    - the selecting contestant
-#    - the correct contestant
-# I might also want to include:
-#    - any contestants that answered incorrectly
-
-# this is like a cool table counting daily double positions
-full_games %>%
-  filter(round == "J") %>%
-  group_by(category_id, row) %>%
-  summarize(dd = sum(dd)/n()) %>%
-  ungroup() %>%
-  pivot_wider(names_from = category_id, values_from = dd)
-
-# let's try and do a visualization here
-
-full_games %>%
-  filter(round %in% c("J", "DJ")) %>%
-  mutate(row = ordered(row, levels = c(5, 4, 3, 2, 1)),
-         category_id = as.factor(category_id)) %>%
-  group_by(round, category_id, row) %>%
-  summarize(dd = sum(dd)/n()) %>%
-  ungroup() %>%
-  ggplot() +
-  geom_tile(aes(x = category_id, y = row, fill = dd), color = "black") +
-  facet_wrap(~round, labeller = labeller(round = c("J" = "Jeopardy", "DJ" = "Double Jeopardy"))) +
-  geom_text(aes(category_id, row, label = round(dd, digits = 3)), color="black", size=rel(4.5)) +
-  theme(
-    plot.background = element_rect(fill = "#00003a", color = NA),
-    panel.background = element_rect(fill = "#00003a", color = NA),
-    strip.background = element_rect(fill = "#00003a"),
-    strip.text = element_text(color = "gold", size = 12),
-    text = element_text(color = "gold", family = "sans"),
-    plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12),
-    legend.text = element_text(color = "white"),
-    legend.background = element_rect(fill = "#00003a", colour = NA),
-    axis.ticks.y = element_blank(),
-    axis.text.y = element_text(color = "white"),
-    panel.grid.major = element_blank()
-  ) +
-  labs(
-    y = "Clue Value",
-    title = "Frequency of Daily Double Locations",
-    subtitle = "Seasons 36-38"
-  ) +
-  xlab(NULL) +
-  scale_x_discrete(breaks = c()) +
-  scale_y_discrete(
-    name = "Clue Value",
-    labels = c("$1,000", "$800", "$600", "$400", "$200")
-  ) +
-  scale_fill_gradient("Daily Double\nProbability", low = "white", high = "#060CE9") +
-  coord_fixed()
-
-full_games %>%
-  filter(round == "DJ") %>%
-  mutate(row = ordered(row, levels = c(5, 4, 3, 2, 1)),
-         category_id = as.factor(category_id)) %>%
-  group_by(category_id, row) %>%
-  summarize(dd = sum(dd)/n()) %>%
-  ungroup() %>%
-  ggplot() +
-  geom_tile(aes(x = category_id, y = row, fill = dd), color = "black") +
-  geom_text(aes(category_id, row, label = round(dd, digits = 2)), color="black", size=rel(4)) +
-  theme(
-    plot.background = element_rect(fill = "#00003a", color = NA),
-    panel.background = element_rect(fill = "#00003a", color = NA),
-    text = element_text(color = "gold", family = "sans"),
-    plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12),
-    legend.text = element_text(color = "white"),
-    legend.background = element_rect(fill = "#00003a", colour = NA),
-    axis.ticks.y = element_blank(),
-    axis.text.y = element_text(color = "white"),
-    panel.grid.major = element_blank()
-  ) +
-  labs(
-    y = "Clue Value",
-    title = "Frequency of Daily Double Locations, Jeopardy Round",
-    subtitle = "Season 38"
-  ) +
-  xlab(NULL) +
-  scale_x_discrete(breaks = c()) +
-  scale_y_discrete(
-    name = "Clue Value",
-    labels = c("$1,000", "$800", "$600", "$400", "$200")
-  ) +
-  scale_fill_gradient("Daily Double\nProbability", low = "white", high = "#060CE9")
-
-
-full_games %>%
-  filter(round == "DJ") %>%
-  group_by(category_id, row) %>%
-  summarize(dd = sum(dd)) %>%
-  ungroup() %>%
-  pivot_wider(names_from = category_id, values_from = dd)
-
-
-
-
