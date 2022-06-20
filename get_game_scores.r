@@ -9,6 +9,8 @@ source("get_season_ep_ids.R")
 #   - total, the final amount of money for the contestant at the end of the game
 #   - place, the final place of the contestant for that game
 
+# doesn't work yet
+
 get_game_scores <- function(season) {
   
   # episodes for the season
@@ -16,7 +18,7 @@ get_game_scores <- function(season) {
   
   game_scores <- rep(NA, 3*length(ep_ids))
   
-  for (ep_id in seq_len(ep_ids)) {
+  for (ep_id in ep_ids) {
     
     # get the game page
     game <- httr::GET(paste0("https://j-archive.com/showgame.php?game_id=", ep_id)) |>
@@ -29,7 +31,7 @@ get_game_scores <- function(season) {
       html_text()
     
     # formatting
-    finals <- tibble(game_id = rep(game_id, 3), name = final_scores[1:3], 
+    finals <- tibble(game_id = rep(ep_id, 3), name = final_scores[1:3], 
                      total = final_scores[4:6], result = final_scores[7:9])
   }
   
@@ -42,6 +44,5 @@ get_game_scores <- function(season) {
     mutate(total = gsub("[^0-9.-]", "", total))
   
 }
-
 
 

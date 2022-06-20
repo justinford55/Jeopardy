@@ -1,5 +1,7 @@
 library(tidyverse)
 library(rvest)
+library(extrafont)
+loadfonts(device = "win")
 
 # this includes one row for every buzz in the Jeopardy/DJ rounds
 # It includes multiple rows for some clues
@@ -42,14 +44,14 @@ clues %>%
     plot.background = element_rect(fill = "#00003a", color = NA),
     panel.background = element_rect(fill = "#00003a", color = NA),
     strip.background = element_rect(fill = "#00003a"),
-    strip.text = element_text(color = "white", size = 12),
-    text = element_text(color = "white", family = "Gyparody Hv"),
+    strip.text = element_text(color = "#E5A561", size = 12, family = "Gyparody Hv"),
+    text = element_text(color = "#E5A561"),
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12),
-    legend.text = element_text(color = "white"),
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(color = "#E5A561"),
     legend.background = element_rect(fill = "#00003a", colour = NA),
     axis.ticks.y = element_blank(),
-    axis.text.y = element_text(color = "white"),
     panel.grid.major = element_blank()
   ) +
   labs(
