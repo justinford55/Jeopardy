@@ -42,15 +42,16 @@ clues %>%
   geom_text(aes(category_id, row, label = round(dd, digits = 2)), color="black", size=rel(4.5)) +
   theme(
     plot.background = element_rect(fill = "#00003a", color = NA),
-    panel.background = element_rect(fill = "#00003a", color = NA),
+    plot.margin = unit(c(2,1,2,1), "cm"),
+    panel.background = element_rect(fill = "#00003a", color = "white"),
     strip.background = element_rect(fill = "#00003a"),
     strip.text = element_text(color = "#E5A561", size = 12, family = "Gyparody Hv"),
-    text = element_text(color = "#E5A561"),
+    text = element_text(color = "#E5A561", family = "Trebuchet MS"),
     plot.title = element_text(face = "bold", size = 16),
     plot.subtitle = element_text(size = 12),
     legend.title = element_text(face = "bold"),
     legend.text = element_text(color = "#E5A561"),
-    legend.background = element_rect(fill = "#00003a", colour = NA),
+    legend.background = element_rect(fill = "#00003a", color = NA),
     axis.ticks.y = element_blank(),
     panel.grid.major = element_blank()
   ) +
@@ -128,9 +129,29 @@ dd %>%
   summarize(sum((prev_dd == row) | (next_dd == row), na.rm = TRUE)/n())
 # daily doubles in double jeopardy appear in the same row in about 26% of games in my sample from S33-37
 
+# How often do daily doubles appear in each row
+dd %>%
+  filter(round == "DJ") %>%
+  group_by(row) %>%
+  summarize(n = n()) %>%
+  mutate(p = n / sum(n))
+
 # In Double Jeopardy, how likely is the daily double to be in the same row as the uncovered DD?
+# Answer: the row of DDs are independent from each other.
 
+# Is there some kind of pattern?
+dd %>%
+  filter(round == "J") %>%
+  select(game_id, round, category_id, row)
 
+# scratch
+clues %>%
+  filter(round == "DJ") %>%
+  mutate(row = ordered(row, levels = c(5, 4, 3, 2, 1)),
+         category_id = as.factor(category_id),
+         round = ordered(round, levels = c("J", "DJ"))) %>%
+  group_by(round, category_id, row) %>%
+  summarize(num_dd = sum(dd), dd = sum(dd)/n(), count = n())
 
 
 # Questions:
@@ -164,7 +185,7 @@ buzzes %>%
 
 #1. Where do Daily Doubles tend to be located on the Jeopardy Board?
 #2. Is there a pattern in these locations?
-#3. Can you predict these locations?
+#3. How valuable are daily doubles?
 #4. Do contestants do a good job of picking clues in these locations?
 
 # could do a barplot with this

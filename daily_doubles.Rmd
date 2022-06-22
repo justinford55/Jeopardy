@@ -5,6 +5,10 @@ date: "6/9/2022"
 output: html_document
 ---
 
+While the most important attribute for success in the trivia game show *Jeopardy!* is undoubtedly the ability to answer the clues correctly, there are certain strategies that contestants can use to gain an edge on their competitors regardless of their trivia knowledge. Several successful players in the modern era of the show have eschewed the traditional sequence of selecting clues one category at a time, in ascending order of value. Instead, these contestants are focused on finding the location of the daily double clues, on which the selecting contestant can wager as much of their money as they want. This strategy, combined with hyperagressive wager sizing, allowed contestant James Holzhauer to win nearly $2.5 million during his 33 game initial run on the show.
+
+I'd like to at some point focus on other aspects of *Jeopardy!* strategy, but I will start with one of the easiest thigns that contestants can implement, which is to hunt for Daily Doubles. Each game will have a total have three Daily Double clues: one in the Jeopardy round, and two in the Double Jeopardy round.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -12,6 +16,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r libraries, include=FALSE}
 library(tidyverse)
 library(rvest)
+library(extrafont)
+loadfonts(device = "win")
 ```
 
 ```{r read_data, include=FALSE}
@@ -23,5 +29,90 @@ clues <- buzzes %>%
   distinct(season, game_id, round, category_name, clue, corr_resp, category_id, row, clue_value, dd, clue_order,
            dd_wager, r_or_w)
 ```
+
+## Where are all the Daily Doubles?
+
+For contestants to be able to seek out Daily Doubles, they have to know first where they are likely to be. It is widely known that the probability of a daily double being at a certain location is not uniform across the game board. For instance, they rarely if ever appear in the top row of clues. The plot below shows how often clues in each board position were Daily Doubles when revealed.
+
+```{r dd_loc, fig.align='center', fig.asp=1}
+# visualization
+clues %>%
+  filter(round %in% c("J", "DJ")) %>%
+  mutate(row = ordered(row, levels = c(5, 4, 3, 2, 1)),
+         category_id = as.factor(category_id),
+         round = ordered(round, levels = c("J", "DJ"))) %>%
+  group_by(round, category_id, row) %>%
+  summarize(dd = sum(dd)/n()) %>%
+  ungroup() %>%
+  ggplot() +
+  geom_tile(aes(x = category_id, y = row, fill = dd), color = "black") +
+  facet_wrap(~round, labeller = labeller(round = c("J" = "Jeopardy!", "DJ" = "Double Jeopardy!"))) +
+  geom_text(aes(category_id, row, label = round(dd, digits = 2)), color="black", size=rel(4.5)) +
+  theme(
+    plot.background = element_rect(fill = "#00003a", color = NA),
+    plot.margin = unit(c(.5,.5,.5,.5), "cm"),
+    panel.background = element_rect(fill = "#00003a", color = "white"),
+    strip.background = element_rect(fill = "#00003a"),
+    strip.text = element_text(color = "#E5A561", size = 12, family = "Gyparody Hv"),
+    text = element_text(color = "#E5A561", family = "Trebuchet MS"),
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12),
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(color = "#E5A561"),
+    legend.background = element_rect(fill = "#00003a", color = NA),
+    axis.ticks.y = element_blank(),
+    panel.grid.major = element_blank()
+  ) +
+  labs(
+    y = "Clue Value",
+    title = "Frequency of Daily Double Locations",
+    subtitle = "Seasons 33-37"
+  ) +
+  xlab(NULL) +
+  scale_x_discrete(breaks = c()) +
+  scale_y_discrete(
+    name = "",
+    breaks = c()
+  ) +
+  scale_fill_gradient("Daily Double\nProbability", low = "white", high = "#060CE9") +
+  coord_fixed()
+```
+We can see clearly where some of the most common locations are. The first row basically never contains Daily Double clues (there are very few instances where this has happened in our sample, they don't show up on the plot due to rounding). The most common locations are in the third and fourth rows of both rounds. Interestingly, there is also a difference between the clue categories (columns). For instance, the far right category seems to be less likely to have a daily double than the other columns. 
+
+Note: I would want to investigate this more to be sure that there's not a confounding factor here. For instance, some categories have video clues, which from my own experience I would expect to be Daily Doubles rarely if ever. It could be that column 6 (far right) is more often a category with video clues, which would explain the discrepancy moreso than just the column position.
+
+Of course, there might be more that can be gleaned about Daily Double location than just looking at the frequency for past games. For instance, the position of Daily Doubles might not be independent from one another. For example, does knowing the position of one DD in the Double Jeopardy round change the probability distribution for finding the other DD?
+
+#### Do Daily Doubles ever appear in the same category in the same round?
+```{r same_col}
+
+# daily doubles only
+dd <- clues %>%
+  filter(dd==TRUE)
+
+# daily doubles in double jeopardy have never appeared in the same column in the same game
+dd %>%
+  group_by(game_id, round) %>%
+  mutate(l = lag(category_id)) %>%
+  ungroup() %>%
+  summarize(sum(l == category_id, na.rm = TRUE)/n())
+```
+
+No, in no games in the sample have daily doubles appeared in the same column. So once a daily double is revealed, contestants can be nearly certain that the other daily double is in another column.
+
+#### Do Daily Doubles ever appear in the same row in the same round?
+
+
+```{r same_row}
+dd %>%
+  filter(round == "DJ") %>%
+  group_by(game_id, round) %>%
+  mutate(prev_dd = lag(row),
+         next_dd = lead(row)) %>%
+  ungroup() %>%
+  summarize(sum((prev_dd == row) | (next_dd == row), na.rm = TRUE)/n())
+```
+
+26% of Double Jeopardy rounds had Daily Doubles in the same row on the board. 
 
 
