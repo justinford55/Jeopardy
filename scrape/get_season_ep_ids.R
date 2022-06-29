@@ -4,7 +4,9 @@ library(rvest)
 # this gets the game_ids for all games in the given season
 # at the moment this function automatically filters for only "regular" games
 
-get_season_ep_ids <- function(season) {
+get_season_ep_ids <- function(season, all_games = FALSE) {
+  
+  season <- 37
   
   season_url <- httr::GET(paste0("https://j-archive.com/showseason.php?season=", season)) |>
     httr::content(as = "text")
@@ -46,8 +48,16 @@ get_season_ep_ids <- function(season) {
     )) %>%
     select(-des)
   
-  ep_ids <- games %>%
-    filter(game_type == "REG")
+  if (all_games == FALSE) {
+    
+    ep_ids <- games %>%
+      filter(game_type == "REG")
+    
+    return(ep_ids$game_id)
+    
+  } else {
+    
+    return(games$game_id)
   
-  return(ep_ids$game_id)
+  }
 }

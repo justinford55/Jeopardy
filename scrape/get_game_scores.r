@@ -1,6 +1,6 @@
 library(tidyverse)
 library(rvest)
-source("get_season_ep_ids.R")
+source("scrape/get_season_ep_ids.R")
 
 # GETS THE FINAL SCORES FOR EACH GAME
 # INCLUDES:
@@ -45,4 +45,4 @@ get_game_scores <- function(season) {
   
 }
 
-
+s37 <- get_game_scores(37)

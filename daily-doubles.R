@@ -7,11 +7,16 @@ loadfonts(device = "win")
 # It includes multiple rows for some clues
 buzzes <- readRDS("data.rds")
 
+buzzes <- buzzes %>%
+  mutate(clue_order = as.integer(clue_order))
+
 # this had only one row per clue, and each clue is denoted as being answered correctly or not
 clues <- buzzes %>%
   filter(r_or_w == "right" | buzz_name == "Triple Stumper" | dd == TRUE) %>%
   distinct(season, game_id, round, category_name, clue, corr_resp, category_id, row, clue_value, dd, clue_order,
            dd_wager, r_or_w)
+
+ 
 
 
 # Things I want to include:
@@ -253,4 +258,50 @@ clues %>%
   mutate(plus_minus = ifelse(r_or_w == "right", 1, -1)) %>%
   mutate(clue_result = clue_value * plus_minus) %>%
   select(-dd_wager)
+
+# selecting contestant
+w <- buzzes %>%
+  filter(r_or_w == "right" | buzz_name == "Triple Stumper" | dd == TRUE) %>%
+  arrange(desc(season), game_id, desc(round), clue_order) %>%
+  group_by(game_id, round) %>%
+  mutate(prev_buzzer = lag(buzz_name),
+         prev_r_w = lag(r_or_w)) %>%
+  select(-category_name, -clue, -corr_resp) %>%
+  # selector is the contestant who got the previous question correct
+  mutate(selector = ifelse(prev_r_w == "right", prev_buzzer, NA)) %>%
+  fill(selector, .direction = "down") %>%
+  select(-prev_buzzer, -prev_r_w)
+
+no_select <- w %>%
+  filter(is.na(selector))
+
+# need to write a function to determine the selector of clue 1 for each round
+
+get_first_clue_selector <- function() {
+  # first determine if the round is J or DJ
+  if (round == "J") {
+    # the selector for the first clue in J round should be the returning champ
+    # I believe that this is always "contestant 1"
+    # I want this to be the first name of the contestant (the name that is used in the clue data)
+    
+    #pseudo code
+    # scrape contestants for the game
+    # probably best not to do the scraping here for time purposes
+    # actually its probably just best to have a function that scrapes all the first selectors
+    
+  }
+  
+  else {
+    # this selector should be the lowest scoring player in the jeopardy round.
+    # if there is a tie, I'm not sure how it is determined, but it is noted on j-archive who selected first
+    
+  }
+
+}
+
+table(no_select$clue_order)
+
+test <- w %>%
+  filter(game_id == "5899")
+
 

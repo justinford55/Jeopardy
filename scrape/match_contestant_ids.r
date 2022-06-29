@@ -26,3 +26,9 @@ get_id_from_full_name <- function(names, full_names) {
 }
 
 
+# this function should take in a dataframe containing full_name and
+get_nickname_from_full <- function(df) {
+  
+}
+
+cont_37 <- get_contestants(37)

@@ -26,14 +26,14 @@ get_contestants <- function(season) {
     html_nodes("td a") %>%
     html_text()
   
-  season_dates <- gsub("^.*aired", "", season_dates_full)
+  #season_dates <- gsub("^.*aired", "", season_dates_full)
   
   # declaring vectors for contestant names/ids, and game ids
   contestants <- c()
   contestant_ids <- c()
   game_ids <- c()
-  tape_dates <- c()
-  air_dates <- c()
+  #tape_dates <- c()
+  #air_dates <- c()
   
   # for each episode of the season
   for (ep in 1:length(season_eps)) {
@@ -49,11 +49,11 @@ get_contestants <- function(season) {
       html_text()
     
     # gets the tape date of the game
-    tape_date <- game %>%
-      html_nodes("h6") %>%
-      html_text()
-    
-    tape_date <- gsub("^.*?: ","", tape_date)
+    # tape_date <- game %>%
+    #   html_nodes("h6") %>%
+    #   html_text()
+    # 
+    # tape_date <- gsub("^.*?: ","", tape_date)
     
     # gets contestant ids for the game
     # these come from the hyperlink to each player's individual page on j-archive
@@ -69,8 +69,8 @@ get_contestants <- function(season) {
     contestants <- append(contestants, ep_contestants)
     contestant_ids <- append(contestant_ids, ep_contestant_ids)
     game_ids <- append(game_ids, rep(url, num_contestants))
-    tape_dates <- append(tape_dates, rep(tape_date, num_contestants))
-    air_dates <- append(air_dates, rep(season_dates[ep], num_contestants))
+    #tape_dates <- append(tape_dates, rep(tape_date, num_contestants))
+    #air_dates <- append(air_dates, rep(season_dates[ep], num_contestants))
   }
   
   # puts data into a tibble
@@ -78,7 +78,7 @@ get_contestants <- function(season) {
   # the game_id and player_id
   contestants_full <- 
     tibble(player_name = contestants, player_id = contestant_ids, 
-           game_id = game_ids, tape_date = tape_dates, air_date = air_dates) %>%
+           game_id = game_ids) %>% #tape_date = tape_dates, air_date = air_dates) %>%
       separate(player_id, into = c("rest", "player_id"), sep = "=") %>%
       separate(game_id, into = c("rest2", "game_id"), sep = "=") %>%
       select(-rest, -rest2) 
@@ -86,10 +86,9 @@ get_contestants <- function(season) {
   return(contestants_full)
 }
 
+# this gets the players for each game
+get_contestants(37)
   
-  
-
-
-
-
+# what I want:
+# a function that for each game gets the returning champion (or the selector of the first clue)
 
