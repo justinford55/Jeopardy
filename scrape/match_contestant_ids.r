@@ -5,6 +5,9 @@ library(tidyverse)
 # names is the list of all responses (will contain names of all contestants plus "Triple Stumper")
 # full_names is the tibble
 
+# now that I changed the scrape_contestants function, this might be irrelevant
+# I won't delete it yet though
+
 get_id_from_full_name <- function(names, full_names) {
   
   # names is the names that are used to denote a contestant response

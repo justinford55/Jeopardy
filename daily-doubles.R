@@ -277,27 +277,6 @@ no_select <- w %>%
 
 # need to write a function to determine the selector of clue 1 for each round
 
-get_first_clue_selector <- function() {
-  # first determine if the round is J or DJ
-  if (round == "J") {
-    # the selector for the first clue in J round should be the returning champ
-    # I believe that this is always "contestant 1"
-    # I want this to be the first name of the contestant (the name that is used in the clue data)
-    
-    #pseudo code
-    # scrape contestants for the game
-    # probably best not to do the scraping here for time purposes
-    # actually its probably just best to have a function that scrapes all the first selectors
-    
-  }
-  
-  else {
-    # this selector should be the lowest scoring player in the jeopardy round.
-    # if there is a tie, I'm not sure how it is determined, but it is noted on j-archive who selected first
-    
-  }
-
-}
 
 table(no_select$clue_order)
 

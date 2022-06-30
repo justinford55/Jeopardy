@@ -11,11 +11,11 @@ library(tidyverse)
 get_contestants <- function(season) {
   
   # url for the page for the desired season
-  season <- httr::GET(paste0("https://j-archive.com/showseason.php?season=", season)) |>
+  season_url <- httr::GET(paste0("https://j-archive.com/showseason.php?season=", season)) |>
     httr::content(as = "text")
   
   # gets the html for that page
-  season_page <- read_html(season)
+  season_page <- read_html(season_url)
   
   # gets the links for all episodes of the season
   season_eps <- season_page %>%
@@ -32,6 +32,7 @@ get_contestants <- function(season) {
   contestants <- c()
   contestant_ids <- c()
   game_ids <- c()
+  nicknames <- c()
   #tape_dates <- c()
   #air_dates <- c()
   
@@ -63,11 +64,16 @@ get_contestants <- function(season) {
       html_children() %>% # this gets the tags for the hyperlink 
       html_attr("href")
     
+    ep_nicknames <- game %>%
+      html_nodes("#jeopardy_round table:nth-child(4) .score_player_nickname") %>%
+      html_text()
+    
     num_contestants <- length(ep_contestants)
     
     # appends the data from this game to the full season data
     contestants <- append(contestants, ep_contestants)
     contestant_ids <- append(contestant_ids, ep_contestant_ids)
+    nicknames <- append(nicknames, rev(ep_nicknames))
     game_ids <- append(game_ids, rep(url, num_contestants))
     #tape_dates <- append(tape_dates, rep(tape_date, num_contestants))
     #air_dates <- append(air_dates, rep(season_dates[ep], num_contestants))
@@ -77,18 +83,22 @@ get_contestants <- function(season) {
   # also removes all the irrelevant information from the hyperlinks so I am left with just
   # the game_id and player_id
   contestants_full <- 
-    tibble(player_name = contestants, player_id = contestant_ids, 
+    tibble(player_name = contestants, player_id = contestant_ids, player_nickname = nicknames, 
            game_id = game_ids) %>% #tape_date = tape_dates, air_date = air_dates) %>%
       separate(player_id, into = c("rest", "player_id"), sep = "=") %>%
       separate(game_id, into = c("rest2", "game_id"), sep = "=") %>%
-      select(-rest, -rest2) 
+      select(-rest, -rest2) %>%
+    mutate(player_nickname = gsub("!", "", player_nickname))
   
   return(contestants_full)
 }
 
-# this gets the players for each game
-get_contestants(37)
-  
-# what I want:
-# a function that for each game gets the returning champion (or the selector of the first clue)
+cont_37 <- get_contestants(37)
+
+# Just scratch
+
+cont <- map(36:37, get_contestants)
+cont_full <- bind_rows(cont)
+
+saveRDS(df_full, "data.rds")
 

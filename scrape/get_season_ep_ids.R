@@ -6,8 +6,6 @@ library(rvest)
 
 get_season_ep_ids <- function(season, all_games = FALSE) {
   
-  season <- 37
-  
   season_url <- httr::GET(paste0("https://j-archive.com/showseason.php?season=", season)) |>
     httr::content(as = "text")
   

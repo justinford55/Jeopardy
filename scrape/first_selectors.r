@@ -2,11 +2,7 @@ library(rvest)
 library(tidyverse)
 source("scrape/get_season_ep_ids.R")
 
-# url for the page for the desired game
-
-# should go through each season and build basically a lookup table containing:
-# - game id
-# - the nickname of the first selector
+# These functions get the selectors of the clues at the beginning of rounds.
 
 get_first_selector <- function(season) {
   
@@ -29,8 +25,11 @@ get_first_selector <- function(season) {
   return(selector_j)
 }
 
-# this looks to work, only it gets full name instead of nickname
-j <- get_first_selector(37)
+# WARNING:: this uses cont_37 which is from the scrape_contestants function
+fs_j <- get_first_selector(37) %>%
+  left_join(cont_37, by = c("game_ids" = "game_id", "first_selector" = "player_name")) %>%
+  arrange(game_ids) %>%
+  rename(c("player_name" = "first_selector"))
 
 get_first_selector_dj <- function(season_num) {
   
@@ -72,8 +71,36 @@ get_first_selector_dj <- function(season_num) {
 }
 
 # this correctly gets the first selector for each double jeopardy round
-dj <- get_first_selector_dj(37)
+fs_dj <- get_first_selector_dj(37) %>%
+  mutate(first_selector = gsub("!", "", first_selector)) %>%
+  left_join(cont_37, by = c("game_ids" = "game_id", "first_selector" = "player_nickname")) %>%
+  arrange(game_ids) %>%
+  rename(c("player_nickname" = "first_selector"))
 
-full <- rbind(j, dj)
+first_selectors <- rbind(fs_j, fs_dj)
+
+first_selectors$clue_order <- 1
 
 # I still need to make a function that can convert full names to nicknames
+
+first_selectors %>%
+  left_join(cont_37, by = c("game_ids" = "game_id", "first_selector" = "player_name")) %>%
+  arrange(game_ids)
+
+w_37 <- w %>%
+  left_join(cont_full, by = c("game_id" = "game_id", "buzz_name" = "player_nickname")) %>%
+  select(-player_name) %>%
+  rename(c("buzz_id" = "player_id")) %>%
+  left_join(first_selectors, c("game_id" = "game_ids", "clue_order" = "clue_order", "round" = "round")) %>%
+  select(-player_name) %>%
+  mutate(selector = ifelse(is.na(selector), player_nickname, selector)) %>%
+  filter(season == 37) %>%
+  group_by(game_id, round) %>%
+  fill(selector, .direction = "down") %>%
+  ungroup()
+
+w_37
+
+colSums(is.na(w_37))
+
+  
